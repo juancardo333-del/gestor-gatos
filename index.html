@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Gastos Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="login-screen" class="auth-container">
+        <div class="auth-box">
+            <h2>Bienvenido</h2>
+            <p>Inicia sesión para gestionar tus gastos</p>
+            
+            <div class="social-auth">
+                <button class="btn-social google">
+                    <img src="https://fonts.gstatic.com/s/i/productlogos/googleg/v6/24px.svg" alt="Google">
+                    Continuar con Google
+                </button>
+            </div>
+
+            <div class="divider"><span>o</span></div>
+
+            <div class="email-login">
+                <input type="email" id="user-email" placeholder="tu-correo@ejemplo.com">
+                <button id="btn-login-main">Ingresar con Correo</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app" class="container" style="display:none;">
+        <h1>Gastos de <span id="user-display"></span></h1>
+
+        <div class="balance-card">
+            <h2>Total Acumulado</h2>
+            <p id="total-amount">$0</p>
+            <button id="btn-calcular">Sumar Gastos</button>
+        </div>
+
+        <form id="expense-form">
+            <input type="text" id="desc" placeholder="¿En qué gastaste?" required>
+            <input type="number" id="monto" placeholder="Monto ($)" required>
+            <select id="categoria">
+                <option value="Comida">Comida</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Hogar">Hogar</option>
+                <option value="Otros">Otros</option>
+            </select>
+            <button type="submit">Agregar Gasto</button>
+        </form>
+
+        <button id="btn-toggle-historial" class="secondary-btn">Mostrar Historial</button>
+
+        <div id="history-container" style="display:none;">
+            <ul id="expense-list"></ul>
+        </div>
+
+        <button id="btn-enviar-reporte" class="report-btn">
+            📧 Enviar tabla a mi correo
+        </button>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
