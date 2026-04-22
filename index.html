@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Gastos Pro</title>
+    <title>Gestor de Gastos - UPB</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="login-screen" class="auth-container">
         <div class="auth-box">
-            <h2>Bienvenido</h2>
-            <p>Inicia sesión para gestionar tus gastos</p>
+            <h2>Gestor de Gastos</h2>
+            <p>Accede para ver tus registros personales</p>
             
             <div class="social-auth">
                 <button class="btn-social google">
@@ -23,17 +23,20 @@
             <div class="divider"><span>o</span></div>
 
             <div class="email-login">
-                <input type="email" id="user-email" placeholder="tu-correo@ejemplo.com">
+                <input type="email" id="user-email" placeholder="correo@ejemplo.com">
                 <button id="btn-login-main">Ingresar con Correo</button>
             </div>
         </div>
     </div>
 
     <div id="main-app" class="container" style="display:none;">
-        <h1>Gastos de <span id="user-display"></span></h1>
+        <header>
+            <h1>Hola, <span id="user-display"></span></h1>
+            <button id="btn-logout" style="font-size: 12px;">Cerrar Sesión</button>
+        </header>
 
         <div class="balance-card">
-            <h2>Total Acumulado</h2>
+            <h2>Tu Total Acumulado</h2>
             <p id="total-amount">$0</p>
             <button id="btn-calcular">Sumar Gastos</button>
         </div>
@@ -45,6 +48,7 @@
                 <option value="Comida">Comida</option>
                 <option value="Transporte">Transporte</option>
                 <option value="Hogar">Hogar</option>
+                <option value="Estudios">Estudios</option>
                 <option value="Otros">Otros</option>
             </select>
             <button type="submit">Agregar Gasto</button>
