@@ -1,6 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { 
+    getAuth, 
+    signInWithPopup, 
+    signInWithRedirect, 
+    getRedirectResult, 
+    GoogleAuthProvider 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
+// CONFIGURACIÓN DE FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDN0cR9KKYRNvw1qMKmHEtg6y3RF3Zr3Xg",
   authDomain: "appgastos-685d9.firebaseapp.com",
@@ -22,6 +29,7 @@ const userDisplay = document.getElementById('user-display');
 const emailInput = document.getElementById('user-email');
 const btnGoogle = document.querySelector('.google');
 const btnLoginMain = document.getElementById('btn-login-main');
+const btnLogout = document.getElementById('btn-logout');
 const btnEnviarReporte = document.getElementById('btn-enviar-reporte');
 
 const form = document.getElementById('expense-form');
@@ -35,52 +43,59 @@ const historyContainer = document.getElementById('history-container');
 let expenses = []; 
 let currentEmail = "";
 
-// --- LÓGICA DE ALMACENAMIENTO POR USUARIO ---
+// --- LÓGICA DE USUARIO ---
 
-// 1. FUNCIÓN DE ACCESO
 function entrarApp(nombre, email) {
-    currentEmail = email.toLowerCase(); // Normalizamos el correo
+    if (!email) return;
+    currentEmail = email.toLowerCase();
     loginScreen.style.display = 'none';
     mainApp.style.display = 'block';
     userDisplay.innerText = nombre || currentEmail;
 
-    // CARGAR SOLO LOS GASTOS DE ESTE CORREO
+    // Cargar gastos específicos de este correo
     const savedData = localStorage.getItem(`gastos_${currentEmail}`);
     expenses = savedData ? JSON.parse(savedData) : [];
-    
     updateUI();
 }
 
-// 2. ACTUALIZAR INTERFAZ Y GUARDAR POR CORREO
 function updateUI() {
     list.innerHTML = '';
     expenses.forEach((item) => {
         const li = document.createElement('li');
         li.innerHTML = `
-            <span>${item.desc} (${item.cat})</span>
+            <span>${item.desc} <small>(${item.cat})</small></span>
             <strong>$${parseFloat(item.monto).toLocaleString('es-CO')}</strong>
         `;
         list.appendChild(li);
     });
-    
-    // GUARDAMOS CON UNA LLAVE ÚNICA: gastos_correo@ejemplo.com
     localStorage.setItem(`gastos_${currentEmail}`, JSON.stringify(expenses));
 }
 
-// --- EVENTOS ---
+// --- AUTENTICACIÓN ---
 
-// LOGIN GOOGLE
-btnGoogle.addEventListener('click', async () => {
-    try {
-        const result = await signInWithPopup(auth, provider);
+// Manejar el regreso del login en móviles (Redirect)
+getRedirectResult(auth).then((result) => {
+    if (result) {
         entrarApp(result.user.displayName, result.user.email);
+    }
+}).catch((error) => console.error("Error en redirect:", error));
+
+// Click en el botón de Google
+btnGoogle.addEventListener('click', async () => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    try {
+        if (isMobile) {
+            await signInWithRedirect(auth, provider);
+        } else {
+            const result = await signInWithPopup(auth, provider);
+            entrarApp(result.user.displayName, result.user.email);
+        }
     } catch (error) {
-        console.error(error);
-        alert("Error de conexión. Verifica los dominios autorizados.");
+        alert("Error de autenticación. Verifica que agregaste el dominio a Firebase.");
     }
 });
 
-// LOGIN MANUAL
+// Login Manual con Correo
 btnLoginMain.addEventListener('click', () => {
     const email = emailInput.value.trim();
     if (email.includes('@')) {
@@ -90,7 +105,13 @@ btnLoginMain.addEventListener('click', () => {
     }
 });
 
-// REGISTRAR GASTO
+// Cerrar Sesión
+btnLogout.addEventListener('click', () => {
+    location.reload(); // Forma rápida de limpiar el estado
+});
+
+// --- FUNCIONALIDADES ---
+
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     const newExpense = {
@@ -103,34 +124,29 @@ form.addEventListener('submit', (e) => {
     form.reset();
 });
 
-// MOSTRAR/OCULTAR HISTORIAL
 btnToggle.addEventListener('click', () => {
     const isHidden = historyContainer.style.display === 'none';
     historyContainer.style.display = isHidden ? 'block' : 'none';
     btnToggle.innerText = isHidden ? "Ocultar Historial" : "Mostrar Historial";
 });
 
-// CALCULAR SUMA
 btnCalcular.addEventListener('click', () => {
     let total = expenses.reduce((sum, item) => sum + parseFloat(item.monto), 0);
     totalDisplay.innerText = `$${total.toLocaleString('es-CO')}`;
 });
 
-// ENVIAR REPORTE
 btnEnviarReporte.addEventListener('click', () => {
-    if (expenses.length === 0) return alert("No hay gastos registrados.");
+    if (expenses.length === 0) return alert("No hay gastos.");
 
-    let tablaTexto = `REPORTE DE GASTOS PARA: ${currentEmail}\n\n`;
-    tablaTexto += "Descripción | Categoría | Monto\n";
-    tablaTexto += "---------------------------------\n";
-    
+    let tabla = `REPORTE PARA: ${currentEmail}\n\n`;
+    tabla += "Descripción | Monto | Categoría\n";
+    tabla += "-------------------------------\n";
     expenses.forEach(e => {
-        tablaTexto += `${e.desc} | ${e.cat} | $${e.monto}\n`;
+        tabla += `${e.desc} | $${e.monto} | ${e.cat}\n`;
     });
-
+    
     const total = expenses.reduce((sum, e) => sum + parseFloat(e.monto), 0);
-    tablaTexto += `\nTOTAL ACUMULADO: $${total.toLocaleString('es-CO')}`;
+    tabla += `\nTOTAL: $${total.toLocaleString('es-CO')}`;
 
-    const mailtoLink = `mailto:${currentEmail}?subject=Reporte de Gastos&body=${encodeURIComponent(tablaTexto)}`;
-    window.location.href = mailtoLink;
+    window.location.href = `mailto:${currentEmail}?subject=Reporte Gastos&body=${encodeURIComponent(tabla)}`;
 });
